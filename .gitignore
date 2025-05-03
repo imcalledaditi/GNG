@@ -1,0 +1,54 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Logs
+logs/
+*.log
+
+# dotenv environment files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Optional cache
+.cache/
+.next/cache/
+
+# MongoDB
+*.lock
+dump/
+mongodb-dump/
+
+# Typescript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Uploads / local storage
+uploads/
+public/temp/
+
+# Misc
+*.tgz
+*.bak
+*.tmp

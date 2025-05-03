@@ -1,15 +1,13 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -18,33 +16,40 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
 
-    // Check if user exists in localStorage
-    const users = JSON.parse(localStorage.getItem("users") || "[]")
-    const user = users.find((u: any) => u.email === email)
+    try {
+      const response = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: "include" // if you're using cookies later
+      })
 
-    if (user && user.password === password) {
-      // Set logged in user
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          name: user.name,
-          email: user.email,
-          gender: user.gender || "male", // Default to male if not set
-          profileImage: user.profileImage || null,
-        }),
-      )
+      if (!response.ok) {
+        const errorText = await response.text()
+        try {
+          const errorData = JSON.parse(errorText)
+          setError(errorData.message || "Login failed")
+        } catch {
+          setError("Unexpected server response.")
+        }
+        setIsLoading(false)
+        return
+      }
 
-      // Redirect to dashboard
-      setTimeout(() => {
-        router.push("/dashboard")
-      }, 1000)
-    } else {
-      setError("Invalid email or password")
+      const data = await response.json()
+      console.log("✅ Login success:", data)
+      router.push("/dashboard")
+    } catch (err: any) {
+      console.error("Login error:", err)
+      setError("Something went wrong. Please try again.")
+    } finally {
       setIsLoading(false)
     }
   }
@@ -52,8 +57,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full flex rounded-lg overflow-hidden shadow-xl">
+        {/* Image Panel */}
         <div className="w-0 md:w-1/2 relative hidden md:block">
-          <Image src="/placeholder.svg?height=800&width=600" alt="Fitness motivation" fill className="object-cover" />
+          <Image
+            src="/placeholder.svg?height=800&width=600"
+            alt="Fitness"
+            fill
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
             <div className="text-center text-white p-6">
               <h2 className="text-3xl font-bold mb-4">Welcome Back!</h2>
@@ -62,13 +73,16 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* Login Card */}
         <Card className="w-full md:w-1/2 border-0 rounded-none">
           <CardHeader className="space-y-1 pt-8">
             <CardTitle className="text-2xl text-center font-bold">Log in to your account</CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,26 +124,6 @@ export default function LoginPage() {
                 {isLoading ? "Logging in..." : "Log In"}
               </Button>
             </form>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <Button variant="outline" className="btn-animated w-full">
-                  Google
-                </Button>
-                <Button variant="outline" className="btn-animated w-full">
-                  Facebook
-                </Button>
-              </div>
-            </div>
 
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-600">Don't have an account?</span>{" "}
